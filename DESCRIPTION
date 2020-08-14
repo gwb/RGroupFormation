@@ -1,0 +1,20 @@
+Package: RGroupFormation
+Title: Randomization tests for group-formation experiments
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Guillaume",
+           family = "Basse",
+           role = c("aut", "cre"),
+           email = "gw.basse@gmail.com",
+           comment = c(ORCID = "0000-0001-6032-5999"))
+Description: Provides utilities for running randomization tests
+	     of peer-effects in group-formation experiments. This
+	     package also includes functions for designing such
+	     experiments.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Imports: 
+    purrr,
+    pbapply
+RoxygenNote: 6.1.1
