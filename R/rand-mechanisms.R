@@ -40,15 +40,22 @@ W.star.fn <- function(L, A) {
 
 ## Finding good L0
 
-##rL <- function(N, M, n.draws=10) {
-##    L0 <- rep(seq(N / M), each = M)
-##    ##return(t(replicate(n.draws, sample(L0, size=N))))
-##    return(t(replicate(n.draws, rp(N) %p% L0)))
-##}
-##
+#' Generates one (or more) random vectors of room assignments
+#'
+#' Generates a room assignment vector (or a room assignment matrix)
+#' depending on `n.draws`. For a vector, the entry at index `i`
+#' represents the room to which unit `i` is to be assigned.
+#' 
+#' @param N An integer. The total number of units in the population.
+#' @param M An integer. The number of unit per room.
+#' @param n.draws An integer. The number of room assignments vectors to
+#' return (defaults to 10).
+#' @return If `n.draws = 1` then returns a vector of room assignments.
+#' If `n.draws > 1', returns a matrix where each row represents a room
+#' assignment vector.
+#' @export
 rL <- function(N, M, n.draws=10) {
     L0 <- rep(seq(N / M), each = M)
-    ##return(t(replicate(n.draws, sample(L0, size=N))))
     res <- t(replicate(n.draws, rp(N) %p% L0))
     if(n.draws == 1) {
         res <- as.vector(res)
@@ -101,11 +108,46 @@ find.target.L0 <- function(N, M, A, target.frac=0.1, n.draws=10) {
 
 ## T stats
 
+#' Computes the difference-in-means test statistic
+#'
+#' \code{T.dim} computes the average difference in outcomes between the
+#' units assigned to treatment \code{k} and those assigned to treatment
+#' \code{l}.
+#'
+#' The value of \code{A} is ignored. The parameter is here to allow a unified
+#' treatment of test statistics by other functions.
+#' 
+#' @param W A vector representing the assignment of units to treatments
+#' (or exposures).
+#' @param Y A vector representing the vector of observed outcomes. Must be
+#' of the same length as \code{W}.
+#' @param k An integer. One of the treatments to be contrasted.
+#' @param l An integer. The other treatment to be contrasted.
+#' @param A This parameter is ignored.
+#' @return A scalar.
+#' @export
 T.dim <- function(W, Y, k, l, A=NULL) {
     return(mean(Y[W==k]) - mean(Y[W==l]))
 }
 
-
+#' Compute the stratified studentized test statistic.
+#'
+#' \code{T.studentizedd} computes the studentized difference in outcomes
+#' between untis assigned to treatment \code{k} and those assigned to
+#' treatment \code{l}, stratifying by values in \code{A}.
+#'
+#' The test statistic is described in Basse et al. (2020+).
+#'
+#' @param W A vector representing the assignment of units to treatments
+#' (or exposures).
+#' @param Y A vector representing the vector of observed outcomes. Must be
+#' of the same length as \code{W}.
+#' @param k An integer. One of the treatments to be contrasted.
+#' @param l An integer. The other treatment to be contrasted.
+#' @param A A vector representing the values to stratify on. Must be of
+#' the same length as \code{A}.
+#' @return A scalar.
+#' @export
 T.studentized <- function(W, Y, k, l, A) {
     A.all <- unique(A)
     pa.ls <- count.matches(A, A.all) / length(A)

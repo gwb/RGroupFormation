@@ -2,8 +2,18 @@
 ##suppressMessages(library(purrr))
 
 
-
-
+#' Generates a random permutation
+#'
+#' If \code{x} is an integer, then returns an element of the symmetric
+#' group on \code{x} elements. If \code{x} is a vector, then generates a 
+#' permutation of the elements of \code{x}.
+#' 
+#' @param x An integer or a vector.
+#' @return A vector representing a permutation.
+#' @examples
+#' rp(5)
+#' rp(c(1, 4, 6, 10, 2))
+#' @export
 rp <- function(x) {
     if(length(x) == 1) {
         ## x is an integer
@@ -50,11 +60,35 @@ format.attributes <- function(A) {
     return(new.A)
 }
 
+#' Generates a random stratified permutation
+#'
+#' \code{rsp} returns an element of the stabilizer of \code{A} in the
+#' symmetric group on \code{|A|} elements.
+#' 
+#' @param A A vector.
+#' @return A vector representing a permutation
+#' @examples
+#' A <- c(0, 0, 0, 0, 1, 1, 1, 1)
+#' rsp(A)
+#' @export
 rsp <- function(A) {
     res <- .rsp(format.attributes(A))
     return(res)
 }
 
+#' Group action operator
+#'
+#' Applies a permutation \code{s} to a vector \code{v}.
+#' 
+#' @param s A vector representing a permutation.
+#' @param v A vector of the same length as \code{s}.
+#' @return A vector of the same length as \code{s} and \code{v}.
+#' @examples
+#' X <- seq(8)
+#' A <- c(0, 0, 0, 0, 1, 1, 1, 1)
+#' rsp(A) %p% X
+#' rp(8) %p% X
+#' @export
 `%p%` <- function(s, v) {
     stopifnot(length(s) == length(v))
     res <- v[s]
@@ -67,6 +101,16 @@ inv <- function(s){
     return(res)
 }
 
+
+#' Pretty print permutations
+#'
+#' \code{pprint} shows both the permutationa and its inverse. The column
+#' labelled \code{p.i} shows the image of the column labelled \code{i} while
+#' the image labelled \code{pm.i} shows the inverse image of \code{i}.
+#'
+#' @param s A vector representing a permutation.
+#' @return A dataframe with 3 columns: \code{i}, \code{p.i}, \code{pm.i}.
+#' @export
 pprint <- function(s) {
     res <- data.frame(i = seq_along(s), pm.i = s, p.i = inv(s))
     return(res)
