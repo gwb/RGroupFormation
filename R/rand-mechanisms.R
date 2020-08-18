@@ -248,6 +248,12 @@ observe.outcomes <- function(Z, A, science) {
 
 ## permutation distributions
 
+#' Generates a random room assignment
+#'
+#' `rsL` draws a random permutation of `L0`. If `A` is null, then the
+#' permutation will be drawn uniformly at random from the symmetric group `S`.
+#' If A is not null, then the permutation will be drawn from `S_A`, the
+#' stabilizer of `A` in the symmetric group.
 rsL <- function(L0, A=NULL, n.draws=10) {
     N <- length(L0)
     if(is.null(A)) {
