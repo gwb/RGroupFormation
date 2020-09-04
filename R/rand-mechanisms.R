@@ -70,6 +70,23 @@ count.matches <- function(v.ls, elts.ls) {
     return(res)
 }
 
+#' Counts the number of units receiving each exposure
+#'
+#' For each row of the input matrix `W.mat', computes the number of units
+#' receiving each exposure.
+#' 
+#' @param W.mat A matrix. Each row represents an exposure vector, so if
+#' the matrix is K x N, then K is the number of exposure vectors, and N
+#' the number of units in the population.
+#' @return A matrix with the same number of rows as `W.mat', and whose
+#' number of columns is equal to the number of unique exposures in `W.mat'.
+#' @examples
+#' W.mat <- rbind(c(0, 1, 1, 2, 0, 1), c(1, 1, 0, 0, 0, 0))
+#' summarize.exposures(W.mat)
+#' #      0 1 2
+#' # [1,] 2 3 1
+#' # [2,] 4 2 0
+#' @export
 summarize.exposures <- function(W.mat) {
     if(is.vector(W.mat)) {
         W.mat <- matrix(W.mat, nrow=1)
@@ -80,6 +97,21 @@ summarize.exposures <- function(W.mat) {
     return(t(res))
 }
 
+#' Finds an initial room-assignment vector
+#'
+#' Here, a `good' room-assignment vector is one whose corresponding exposure
+#' vector is approximately balanced. The function generates `n.draws` potential
+#' room assignment vectors and selects the one that is most balanced.
+#'
+#' @param N An integer. The number of units in the population.
+#' @param M An integer. The number of units per room. `M` must be a divisor of
+#' `N`.
+#' @param A A numeric vector. The vector of attributes (must be of length `N`).
+#' @param n.draws An integer. The number of potential room assignment vector to
+#' draw, and from which to choose the best one.
+#' @return A numeric vector, representing the `best` room assignment vector among
+#' those randomly generated.
+#' @export
 find.good.L0 <- function(N, M, A, n.draws=10) {
     Ls <- rL(N, M, n.draws)
     Ws <- W.star.fn(Ls, A)
@@ -238,6 +270,16 @@ T.F.2 <- function(W, Y, k, l, A=NULL) {
 
 ## Observe outcomes
 
+#' Reveals the observed outcomes.
+#'
+#' @param Z A list of numeric vectors. A group-assignment structure.
+#' @param A A numeric vector. A vector of attributes.
+#' @param science A matrix. A full schedule of potential outcomes. Its number
+#' of rows should equal the length of `A` and `Z`. Each column corresponds to
+#' a different exposure. For now, exposures should be contiguous integers
+#' starting from 0.
+#' @return A vector of observed outcomes, of the same length as `A` and `Z`.
+#' @export
 observe.outcomes <- function(Z, A, science) {
     ## !!! assumes exposures of the form 0, 1, 2, ...
     W <- W.fn(Z, A)
@@ -254,6 +296,15 @@ observe.outcomes <- function(Z, A, science) {
 #' permutation will be drawn uniformly at random from the symmetric group `S`.
 #' If A is not null, then the permutation will be drawn from `S_A`, the
 #' stabilizer of `A` in the symmetric group.
+#'
+#' @param L0 A room assignment vector.
+#' @param A A vector of attributes. Should be of the same length as `L0`.
+#' @param n.draws An integer. The number of permutations of `L0` that should be
+#' drawn.
+#' @return If `n.draws` = 1, then a vector is returned, representing a random
+#' permutation of `L0`. If `n.draws > 1`, returns a matrix whose rows are
+#' random permutations of `L0`.
+#' @export
 rsL <- function(L0, A=NULL, n.draws=10) {
     N <- length(L0)
     if(is.null(A)) {
