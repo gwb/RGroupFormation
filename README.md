@@ -79,7 +79,7 @@ room assignment vector L, the group assignment Z = Z(L), and the exposure
 vector W = W(Z) = W'(L). The package provided functions for easily generating 
 these.
 
-```
+```r
 library(RGroupFormation)
 
 # setup parameters
