@@ -9,12 +9,24 @@
 
 ### utilities
 
+#' Converts a room assignment vector into a group assignment
+#'
+#' @param L A room assignment vector.
+#' @return A list of numeric vector representing the corresponding
+#' room assignment.
+#' @export
 Z.fn <- function(L) {
     res <- lapply(seq_along(L),
                   function(i) setdiff(which(L == L[i]), i))
     return(res)
 }
 
+#' Computes the exposure vector associated with a group assignment.
+#'
+#' @param Z A group assignment.
+#' @param A An attribute vector.
+#' @return An exposure vector
+#' @export
 W.fn <- function(Z, A) {
     res <- sapply(seq_along(A),
                   function(i) sum(A[Z[[i]]]))
@@ -25,6 +37,13 @@ W.fn <- function(Z, A) {
     return(W.fn(Z.tmp, A))
 }
 
+#' Computes the exposures associated with room assignments.
+#'
+#' @param L A room assignment vector or matrix.
+#' @param A An attribute vector.
+#' @return If `L` is a vector, returns an exposure vector. If
+#' `L` is a matrix, returns a matrix whose rows are exposure
+#' vectors.
 W.star.fn <- function(L, A) {
     if(is.null(nrow(L))){
         res <- .W.star.fn(L, A)
