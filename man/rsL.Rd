@@ -2,7 +2,7 @@
 % Please edit documentation in R/rand-mechanisms.R
 \name{rsL}
 \alias{rsL}
-\title{Generates a random room assignment}
+\title{Generates a random room assignment from a template L0}
 \usage{
 rsL(L0, A = NULL, n.draws = 10)
 }
@@ -12,7 +12,7 @@ rsL(L0, A = NULL, n.draws = 10)
 \item{A}{A vector of attributes. Should be of the same length as `L0`.}
 
 \item{n.draws}{An integer. The number of permutations of `L0` that should be
-drawn.}
+drawn (defaults to 10).}
 }
 \value{
 If `n.draws` = 1, then a vector is returned, representing a random

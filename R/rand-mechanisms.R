@@ -290,7 +290,7 @@ observe.outcomes <- function(Z, A, science) {
 
 ## permutation distributions
 
-#' Generates a random room assignment
+#' Generates a random room assignment from a template L0
 #'
 #' `rsL` draws a random permutation of `L0`. If `A` is null, then the
 #' permutation will be drawn uniformly at random from the symmetric group `S`.
@@ -300,7 +300,7 @@ observe.outcomes <- function(Z, A, science) {
 #' @param L0 A room assignment vector.
 #' @param A A vector of attributes. Should be of the same length as `L0`.
 #' @param n.draws An integer. The number of permutations of `L0` that should be
-#' drawn.
+#' drawn (defaults to 10).
 #' @return If `n.draws` = 1, then a vector is returned, representing a random
 #' permutation of `L0`. If `n.draws > 1`, returns a matrix whose rows are
 #' random permutations of `L0`.
@@ -318,7 +318,19 @@ rsL <- function(L0, A=NULL, n.draws=10) {
     return(res)
 }
 
-
+#' Generates a random exposure vector from a template W0
+#'
+#' `rsW` draws a random permutation of `W0`. If `A` is null, then the
+#' permutation will be drawn uniformly at random from the symmetric group
+#' `S`. If A is not null, then the permutation will be drawn from `S_A`, the
+#' stabilizer of `A` in the symmetric group.
+#'
+#' @param W0 An exposure vector.
+#' @param A A vector of attributes. Should be of the same length as `W0`.
+#' @param n.draws An integer. The number of permutations of `W0` that should be
+#' drawn (defaults to 10).
+#' @return A matrix whose rows are random permutations of `W0`.
+#' @export
 rsW <- function(W0, A=NULL, n.draws=10) {
     N <- length(W0)
     if(is.null(A)) {
@@ -330,43 +342,6 @@ rsW <- function(W0, A=NULL, n.draws=10) {
 }
 
 
-## randomization tests
-
-FRT <- function(Zobs, Yobs, T, A, k, l, n.rand=1000, two.sided=FALSE) {
-    Wobs <- W.fn(Zobs, A)
-    N <- length(Wobs)
-    
-    U <- rep(0,N)
-    U[which(Wobs %in% c(k,l))] <- 1
-   
-    Wobs.u <- Wobs[U==1]
-    Yobs.u <- Yobs[U==1]
-    A.u <- A[U==1]
-
-    Tobs <- T(Wobs.u, Yobs.u, k, l, A.u)
-
-    W.mat <- rsW(Wobs.u, A.u, n.draws=n.rand)
-    T.ls <- apply(W.mat, 1,
-                  function(W) T(W, Yobs.u, k, l, A.u))
-
-    if(!two.sided) {
-        return(mean(T.ls >= Tobs))
-    } else {
-        right.pval <- mean(T.ls >= Tobs)
-        left.pval <- mean(T.ls <= Tobs)
-        res <- min(1, 2*min(right.pval, left.pval))
-        return(res)        
-    }
-}
-
-FRT.sharp <- function(Zobs, Yobs, T, A, n.rand=1000) {
-    Wobs <- W.fn(Zobs, A)
-    Tobs <- T(Wobs, Yobs)
-    W.mat <- rsW(Wobs, A, n.draws=n.rand)
-    T.ls <- apply(W.mat, 1,
-                  function(W) T(W, Yobs))
-    return(mean(T.ls >= Tobs))        
-}
 
 ###
 ## Hodges-Lehman
@@ -379,78 +354,6 @@ FRT.sharp <- function(Zobs, Yobs, T, A, n.rand=1000) {
 ##   "monotony" assumptions about how increasing tau
 ##    affects E[T]. This may need to be investigated.
 ##
-
-generate.null.science <- function(Yobs, Wobs, k, l, tau) {
-    ## generates science with Y(k) = Y(l) + tau
-    science <- matrix(NA, nrow=length(Yobs), ncol=max(k+1,l+1))
-
-    ##
-    science[Wobs==k, k+1] <- Yobs[Wobs==k]
-    science[Wobs==l, k+1] <- Yobs[Wobs==l] + tau
-    science[Wobs==l, l+1] <- Yobs[Wobs==l]
-    science[Wobs==k, l+1] <- Yobs[Wobs==k] - tau
-
-    ## returns a science with a bunch of NAs, but the entries
-    ## with NAs will never be used, if the rest of the code
-    ## is correct.
-    return(science)
-}
-
-partial_observe_outcomes <- function(science, W, k, l) {
-    Yobs <- rep(NA, length(W))
-    Yobs[W == k]  <-  science[W == k, k+1]
-    Yobs[W == l]  <-  science[W == l, l+1]
-
-    ## Yobs will contain NAs, but the NA entries will never
-    ## be used if code is correct
-    return(Yobs)
-}
-
-FRT.tau <- function(Zobs, Yobs, T, A, k, l, tau=0, n.rand=1000, two.sided=FALSE, return.T.ls=FALSE) {
-    Wobs <- W.fn(Zobs, A)
-    science.tau <- generate.null.science(Yobs, Wobs, k, l, tau)
-    
-    N <- length(Wobs)
-    
-    U <- rep(0,N)
-    U[which(Wobs %in% c(k,l))] <- 1
-
-    science.tau.u <- science.tau[U==1,]
-    Wobs.u <- Wobs[U==1]
-    Yobs.u <- Yobs[U==1]
-    A.u <- A[U==1]
-
-    
-    Tobs <- T(Wobs.u, Yobs.u, k, l, A.u)
-    
-    W.mat <- rsW(Wobs.u, A.u, n.draws=n.rand)
-
-    Yobs.u.ls <- lapply(seq(n.rand),
-                        function(i) partial_observe_outcomes(science.tau.u,
-                                                             W.mat[i,],
-                                                             k,
-                                                             l))
-    T.ls <- sapply(seq(n.rand),
-                   function(i) T(W.mat[i,],
-                                 Yobs.u.ls[[i]],
-                                 k, l,
-                                 A.u))
-                                 
-##    T.ls <- apply(W.mat, 1,
-##                  function(W) T(W, Yobs.u, k, l, A.u))
-
-    if(return.T.ls==TRUE) {
-        return(T.ls)
-    }
-    if(!two.sided) {
-        return(mean(T.ls >= Tobs))
-    } else {
-        right.pval <- mean(T.ls >= Tobs)
-        left.pval <- mean(T.ls <= Tobs)
-        res <- min(1, 2*min(right.pval, left.pval))
-        return(res)
-    }
-}
 
 
 hl_find_nonreject <- function(Zobs, Yobs, T, A, k, l, n.rand=300, step.size=0.1, max.iter=100) {
