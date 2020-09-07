@@ -67,4 +67,42 @@ power.ls <- sapply(res.ls, function(res.i) mean(res.i <= 0.05))
 
 ```
 
+## Recipes
 
+The following snippets show how to use the functions provided in this package 
+by isolating a number of use-cases.
+
+### Room assignments, group assignments and exposures
+
+There are 3 `assignment' quantities of interest in Basse et al (2020). The 
+room assignment vector L, the group assignment Z = Z(L), and the exposure 
+vector W = W(Z) = W'(L). The package provided functions for easily generating 
+these.
+
+```
+library(RGroupFormation)
+
+# setup parameters
+N <- 90 # total number of units
+M <- 3 # number of units per room
+A <- rep(c(0,1), each = N/2) # attribute vector
+
+# Room assignment vectors 
+L <- rL(N, M, 1)
+Lmat <- rL(N, M, 100) # draws 100 random room assignment vectors.
+
+# Group assignments
+Z <- Z.fn(L)
+Zmat <- apply(Lmat, 1, Z.fn)
+
+# Exposures
+W <- W.fn(Z, A)
+Wmat <- apply(Zmat, 1, function(z) W.fn(z, A))
+
+# Exposure (alternative approach)
+W.alt <- W.star.fn(L)
+Wmat.alt <- W.star.fn(Lmat)
+
+all(W == W.alt)
+all(Wmat == Wmat.alt)
+```
